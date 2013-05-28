@@ -12,7 +12,7 @@ use Coro;
 use Coro::AnyEvent;
 use Time::HiRes qw(time);
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 BEGIN { use_ok('Coro::DataPipe') };
 
 #########################
@@ -21,9 +21,10 @@ BEGIN { use_ok('Coro::DataPipe') };
 # its man page ( perldoc Test::More ) for help writing this test script.
 
 test_run();
+test_pipeline();
 
 sub test_run {
-    my $n_items = 100000;
+    my $n_items = 5000;
     my $sleep = 0.01; # make $n_items * $sleep > 1 to test cooperative processing
     my @input = 1..$n_items;
     my @copy = @input;
@@ -40,8 +41,39 @@ sub test_run {
         output=>\@processed,
         number_of_data_processors => $number_of_data_processors,
     });
-    ok(time-$t<$n_items*($n_items/$number_of_data_processors)*$sleep,"cooperative processing of $n_items items by $number_of_data_processors data processors");
+    ok(time-$t<$n_items*($n_items/$number_of_data_processors)*$sleep,"*** run: cooperative processing of $n_items items by $number_of_data_processors data processors");
     ok(@processed==$n_items,'processed length');
     ok(join(",",map $_*2,@copy) eq join(",",sort {$a <=> $b} @processed),'processed values');
+}
+
+sub test_pipeline {
+    my $n_items = 5000;
+    my $sleep = 0.01; # make $n_items * $sleep > 1 to test cooperative processing
+    my @input = 1..$n_items;
+    my @copy = @input;
+    my @processed;
+    my $t = time();
+    my $number_of_data_processors = $n_items;#int($n_items/20);
+    $number_of_data_processors = 350;
+    Coro::DataPipe::pipeline({
+        input => \@input,
+        process => sub{
+            Coro::AnyEvent::sleep(rand() * $sleep);
+            $_*2;
+        },
+        number_of_data_processors => $number_of_data_processors,
+    },
+    {
+        process => sub{
+            Coro::AnyEvent::sleep(rand() * $sleep);
+            $_*3;
+        },
+        number_of_data_processors => $number_of_data_processors,
+        output=>\@processed,
+    },                        
+    );
+    ok(time-$t<$n_items*($n_items/$number_of_data_processors)*$sleep,"*** pipeline: cooperative processing of $n_items items by $number_of_data_processors data processors");
+    ok(@processed==$n_items,'processed length');
+    ok(join(",",map $_*6,@copy) eq join(",",sort {$a <=> $b} @processed),'processed values');    
 }
 
