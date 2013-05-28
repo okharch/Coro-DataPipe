@@ -22,7 +22,7 @@ sub run {
     while (1) {
         $data_loaded = $conveyor->load_data if $data_loaded && $conveyor->free_processors;
         if ($conveyor->busy_processors) {
-            schedule unless $data_loaded && $conveyor->free_processors;
+            schedule;
         } else {
             last unless $data_loaded;
         }
@@ -67,7 +67,7 @@ sub run_pipes {
     my ($prev_busy,$me,@next) = @_;
     my $me_busy = $me->load_data || $me->busy_processors;
     while ($me_busy) {
-        $me->receive_and_merge_data;
+        schedule;
         $me_busy = $me->load_data || $me->busy_processors;
         my $next_busy = @next && run_pipes($prev_busy || $me_busy, @next);
         $me_busy ||= $next_busy;
@@ -121,10 +121,14 @@ sub set_process_iterator {
 # return the number of loaded processors
 sub load_data {
     my $self = shift;
-    my $data = $self->{input_iterator}->();
-    return 0 unless defined($data);
-    $self->{process_iterator}->($data);
-    return 1;
+    my $result = 0;
+    while ($self->free_processors) {
+        my $data = $self->{input_iterator}->();
+        return $result unless defined($data);
+        $self->{process_iterator}->($data);
+        $result++;
+    }
+    return $result;
 }
 
 sub extract_param {
