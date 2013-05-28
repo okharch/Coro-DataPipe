@@ -45,10 +45,11 @@ sub pipeline {
 
 sub run_pipes {
     my ($prev_busy,$me,@next) = @_;
-    my $me_busy = $me->load_data || $me->busy_processors;
-    while ($me_busy) {
+    while (1) {
+        my $data_loaded = $me->load_data;        
+        return 0 unless $me->busy_processors;
         schedule;
-        $me_busy = $me->load_data || $me->busy_processors;
+        my $me_busy = $me->busy_processors;
         my $next_busy = @next && run_pipes($prev_busy || $me_busy, @next);
         $me_busy ||= $next_busy;
         # get data from pipe if we have free_processors
