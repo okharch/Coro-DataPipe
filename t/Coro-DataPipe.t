@@ -20,13 +20,7 @@ BEGIN { use_ok('Coro::DataPipe') };
 # Insert your test code below, the Test::More module is use()ed here so read
 # its man page ( perldoc Test::More ) for help writing this test script.
 
-my $t = time;
 test_run();
-printf "1. %d\n", (time-$t)*1000;
-
-$t = time;
-test_run();
-printf "2. %d\n", (time-$t)*1000;
 
 sub test_run {
     my $n_items = 100000;
