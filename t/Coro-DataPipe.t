@@ -30,7 +30,7 @@ sub test_run {
     my @processed;
     my $t = time();
     my $number_of_data_processors = $n_items;#int($n_items/20);
-    $number_of_data_processors = 500;
+    $number_of_data_processors = 350;
     Coro::DataPipe::run({
         input => \@input,
         process => sub{
@@ -40,7 +40,7 @@ sub test_run {
         output=>\@processed,
         number_of_data_processors => $number_of_data_processors,
     });
-    ok(time-$t<$n_items*($n_items/$number_of_data_processors)*$sleep,"cooperative processing ($number_of_data_processors data processors)");
+    ok(time-$t<$n_items*($n_items/$number_of_data_processors)*$sleep,"cooperative processing of $n_items items by $number_of_data_processors data processors");
     ok(@processed==$n_items,'processed length');
     ok(join(",",map $_*2,@copy) eq join(",",sort {$a <=> $b} @processed),'processed values');
 }
