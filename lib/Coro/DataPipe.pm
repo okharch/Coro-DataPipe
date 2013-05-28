@@ -77,21 +77,6 @@ sub run_pipes {
     return 0;
 }
 
-# this should work with Windows NT or if user explicitly set that
-my $number_of_cpu_cores = $ENV{NUMBER_OF_PROCESSORS}; 
-sub number_of_cpu_cores {
-    #$number_of_cpu_cores = $_[0] if @_; # setter
-    return $number_of_cpu_cores if $number_of_cpu_cores;
-    eval {
-        # try unix (linux,cygwin,etc.)
-        $number_of_cpu_cores = scalar grep m{^processor\t:\s\d+\s*$},`cat /proc/cpuinfo 2>/dev/null`;
-        # try bsd
-        ($number_of_cpu_cores) = map m{hw.ncpu:\s+(\d+)},`sysctl -a` unless $number_of_cpu_cores;
-    };
-    # otherwise it sets number_of_cpu_cores to 1
-    return $number_of_cpu_cores || 1;
-}
-
 sub set_input_iterator {
     my ($self,$param) = @_;
     my ($input_iterator) = extract_param($param, qw(input));
@@ -161,7 +146,13 @@ sub new {
     my ($class, $param) = @_;	
 	my $self = {};
     bless $self,$class;
-    $self->{number_of_data_processors} = extract_param($param,'number_of_data_processors') || number_of_cpu_cores;
+    # this is cooperative, so it's better to set explicit number of processor - your better know when it wins
+    my $number_of_data_processors = extract_param($param,'number_of_data_processors');
+    unless ($number_of_data_processors) {
+        $number_of_data_processors = 2;
+        warn "number_of_data_processors set to $number_of_data_processors";
+    }
+    $self->{number_of_data_processors} = $number_of_data_processors;
     # item_number & busy
     $self->{$_} = 0 for qw(item_number busy);
     $self->set_input_iterator($param);
