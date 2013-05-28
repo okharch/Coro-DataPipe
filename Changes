@@ -1,0 +1,5 @@
+Revision history for Perl extension Coro::DataPipe.
+
+0.01  Tue May 28
+	- Coro::DataPipe::run implemented
+

@@ -1,0 +1,6 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Coro-DataPipe.t
+lib/Coro/DataPipe.pm
