@@ -47,11 +47,16 @@ sub run_pipes {
     my ($prev_busy,$me,@next) = @_;
     while (1) {
         my $data_loaded = $me->load_data;        
-        return 0 unless $me->busy_processors;
-        schedule;
-        my $me_busy = $me->busy_processors;
+        my $me_busy = $data_loaded || $me->busy_processors;
+        # get processed data 
+        schedule if $me_busy;
+        # push it to next pipe
+        $me_busy = $data_loaded || $me->busy_processors;
         my $next_busy = @next && run_pipes($prev_busy || $me_busy, @next);
+        # I am busy either when I am already busy or my child are busy
         $me_busy ||= $next_busy;
+        # pipeline is free if every pipe is free and no more data to process
+        return 0 unless $me_busy || $data_loaded;
         # get data from pipe if we have free_processors
         return $me_busy if $prev_busy && $me->free_processors;
     }
