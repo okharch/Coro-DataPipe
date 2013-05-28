@@ -31,7 +31,7 @@ sub test_run {
     my @processed;
     my $t = time();
     my $number_of_data_processors = $n_items;#int($n_items/20);
-    $number_of_data_processors = 5000;
+    $number_of_data_processors = 367;
     Coro::DataPipe::run({
         input => \@input,
         process => sub{
