@@ -185,8 +185,6 @@ Good use case is when you make some long lasting queries to database/www and the
 and want to do it asynchronosuly.
 In that case even if you have one processor you will win because processor will be always busy thanks to Coro.
 
-Good luck!
-
 =head1 SEE ALSO
 
 L<Coro>
