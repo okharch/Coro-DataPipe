@@ -73,23 +73,7 @@ sub test_pipeline {
     },                        
     );
     ok(time-$t<$n_items*($n_items/$number_of_data_processors)*$sleep,"*** pipeline: cooperative processing of $n_items items by $number_of_data_processors data processors");
-    if (@processed != $n_items) {
-        @processed = sort {$a <=> $b} @processed;
-        debug("processed[%d]: %s",scalar(@processed),join ",",map {$_/6} @processed);
-        exit;
-    }
     ok(@processed==$n_items,'processed length');
     ok(join(",",map $_*6,@copy) eq join(",",sort {$a <=> $b} @processed),'processed values');    
 }
 
-use Data::Dump qw(dump);
-use Time::HiRes qw(time);
-my $lt = time;
-sub debug {
-    $lt=time unless defined($lt);
-    #return;
-	my ($format,@par) = @_;
-	my ($package, $filename, $line) = caller;
-	printf STDERR "%s[%5d](%d) $format\n",$filename,(time-$lt)*1000,$line,map {defined($_)?(ref($_)?dump($_):$_):'undef'} @par;
-    $lt=time;
-}
